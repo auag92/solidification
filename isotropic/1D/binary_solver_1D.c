@@ -61,7 +61,7 @@ void main() {
   long i, t;
   double p,dp,du;
   double surface_energy;
-  
+
   initialize(phi_old);
   boundary(phi_old);
   boundary(mu_old);
@@ -87,11 +87,11 @@ void main() {
     update();
     if((t%saveT) ==0) {
       write2file(t);
-      
+
       surface_energy = compute_surface_energy(phi_old);
       printf("surface_energy=%le\n", surface_energy);
     }
-      
+
 
   }
   printf("Yay! We are done.\n");
@@ -175,9 +175,9 @@ void boundary(double *c) {
 double compute_surface_energy (double *c) {
   long i;
   double integral=0.0;
-  
+
   for (i=2; i < MESHX-2; i++) {
-    integral += 0.5*(c[i]*c[i]*(1.0-c[i])*(1.0-c[i]) + c[i+1]*c[i+1]*(1.0-c[i+1])*(1.0-c[i+1])); 
+    integral += 0.5*(c[i]*c[i]*(1.0-c[i])*(1.0-c[i]) + c[i+1]*c[i+1]*(1.0-c[i+1])*(1.0-c[i+1]));
   }
   return integral*deltax;
 }
