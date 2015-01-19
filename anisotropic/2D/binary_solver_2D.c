@@ -60,25 +60,25 @@ void main() {
   initialize();
   boundary(phi_old);
   boundary(mu_old);
-  
+
   for (t=0; t < ntimesteps; t++) {
     //laplacian(phi_old,     lap_phi);
     laplacian(mu_old,     lap_mu);
-     
+
 
     for (i=1; i < (MESHX-1); i++) {
 
       for (j=1; j < (MESHX-1); j++){
-      
+
         z= i*MESHX + j;
-        p = phi_old[z];    
-        Gamma = 
+        p = phi_old[z];
+        Gamma =
         //Gamma = 2*G*lap_phi[z];
         dp = deltat*(E*Gamma - (G/E)*18.0*(p)*(1.0-p)*(1.0-2.0*p) + (mu_old[z] - Mu)*(K-1)*(mu_old[z])*6*p*(1-p))/(tau*E);
         phi_new[z] = p + dp;
         du = deltat*M*lap_mu[z] - (K-1)*mu_old[z]*6*p*(1-p)*dp;
         mu_new[z] = mu_old[z]  + du/(1+(K-1)*p*p*(3-2*p));
-        
+
         x_now=x_next;
       }
       fnupdade();
@@ -100,13 +100,13 @@ void update() {
       z= i*MESHX + j;
       phi_old[z]=phi_new[z];
       mu_old[z]=mu_new[z];
-      
+
     }
   }
 }
 void laplacian(double *f, double *lap) {
   long i,j,z;
-    
+
   for (i=1; i< MESHX -1; i++)
   {
     for (j=1; j< MESHX -1; j++)
@@ -133,7 +133,7 @@ void concentration(){
 void initialize() {
   long i,j,z;
   double r;
-  
+
   for ( i = 0; i < MESHX; i++)
   {
     for ( j=0; j < MESHX; j++)
@@ -147,45 +147,45 @@ void initialize() {
         phi_old[z] = 0.0;
       }
       mu_old[z] = Mu - deltaMu;
-      
+
     }
   }
 }
 void boundary(double *c) {
   int i ,y ,z;
-  
+
   for (i=0; i<MESHX -1; i++)
   {
     y= i*MESHX;
     z= i*MESHX + MESHX-1;
-    
+
     //left - right
     c[y]        = c[y+1];
     c[z]  = c[z-1];
-    
+
     // up - down
     c[i]        = c[MESHX + i];
     c[MESHX2 - MESHX + i]  = c[MESHX2 - 2*MESHX + i];
-  } 
+  }
 }
 void grad_phi(double *phi, double *d_phi){
- 	
+
  	long i,z;
- 	
+
  	for(i=1; i<MESHX-1; i++){
- 		z = MESHX + i;	
+ 		z = MESHX + i;
  		d_phi[i] = (phi_old[z] - phi_old[z-1])*inv_deltax;
-        	d_phi[MESHX+i] = (phi_old[z+MESHX] - phi_old[z-MESHX] + phi_old[z-1+MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax; 
+        	d_phi[MESHX+i] = (phi_old[z+MESHX] - phi_old[z-MESHX] + phi_old[z-1+MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
         	d_phi[2*MESHX+i] = (phi_old[z] - phi_old[z-MESHX])*inv_deltax;
  		d_phi[3*MESHX+i] = (phi_old[z+1] - phi_old[z-1] + phi_old[z+1-MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
- 	}  
+ 	}
  	for(i=1; i<MESHX-1; i++){
- 			
+
  		d_phi[i] = (phi_old[z] - phi_old[z-1])*inv_deltax;
-        	d_phi[MESHX+i] = (phi_old[z+MESHX] - phi_old[z-MESHX] + phi_old[z-1+MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax; 
+        	d_phi[MESHX+i] = (phi_old[z+MESHX] - phi_old[z-MESHX] + phi_old[z-1+MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
         	d_phi[2*MESHX+i] = (phi_old[z] - phi_old[z-MESHX])*inv_deltax;
  		d_phi[3*MESHX+i] = (phi_old[z+1] - phi_old[z-1] + phi_old[z+1-MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
- 	}    	
+ 	}
 
 
 }
@@ -195,24 +195,24 @@ double dqdx( double phi_x, double phi_y){
 	double ans;
 	long z;
 
-        
+
         phi_x4 = phi_x *phi_x *phi_x *phi_x;
         phi_y4 = phi_y *phi_y *phi_y *phi_y;
         phi_x2 = phi_x *phi_x;
         phi_y2 = phi_y *phi_y;
-	
+
 	inv_phi = 1/(phi_x2+phi_y2);
-	
+
         a = G*(1 - Dab*(4*(phi_x4 + phi_y4) - 3)*inv_phi*inv_phi);
         ans= 2 * a * phi_x * G * (1 - Dab*(16.0*phi_x2 + (-12.0*(phi_x4+phi_y4)+9.0)*inv_phi)*inv_phi);
         return ans;
 }
 
 double div_phi(){
-	double ans;	
+	double ans;
 	double x_next, x_now;
 	double y_next, y_now;
-	x_next = 
+	x_next = 0;
 	ans = ((x_next - x_now) + ( y_next[j]-y_now[j]))*inv_deltax;
 	return ans;
 }
@@ -220,20 +220,19 @@ void write2file ( long t) {
   int i,j,z;
   FILE *fp;
   char filename[1000];
-  
+
   sprintf(filename,"phi_%ld.dat",t);
   fp = fopen(filename,"w");
   for ( i = 0; i < MESHX; i++)
   {
     for ( j=0; j < MESHX; j++)
     {
-      
+
       z= i*MESHX + j;
       fprintf(fp,"%d %d %le\n",i,j, phi_new[z]);
-      
+
     }
     fprintf(fp,"\n");
   }
   fclose(fp);
 }
-
