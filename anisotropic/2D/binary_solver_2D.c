@@ -1,6 +1,6 @@
 #include "stdio.h"
 #include "math.h"
-#include <sys/stat.h>
+#include "stdlib.h"
 
 #define MESHX 200
 #define MESHX2 (MESHX*MESHX)
@@ -13,9 +13,9 @@
 #define M (1.0)             /*Mobility*/
 #define E (4.0)             /*Relaxation factor - dimensions of length [m]*/
 #define tau (1.0)
-#define Dab (0.0)
+#define Dab (0.0000)
 
-#define ntimesteps (3000)
+#define ntimesteps (100000)
 #define saveT (1000)
 #define deltaMu (0.3)
 #define Mu (1.0)
@@ -33,6 +33,8 @@
 #endif
 #define STEP_PROFILE
 
+//#define isotropy
+#define anisotropy
 double phi_new[MESHX2], phi_old[MESHX2];
 double mu_new[MESHX2], mu_old[MESHX2];
 double lap_phi[MESHX2], lap_mu[MESHX2];
@@ -61,9 +63,11 @@ void main() {
   boundary(mu_old);
 
   for (t=0; t < ntimesteps; t++) {
-    //laplacian(phi_old,     lap_phi);
-    laplacian(mu_old,    lap_mu);
-    grad_phi(0, dphi_now);
+
+    laplacian(phi_old, lap_phi);
+    laplacian(mu_old, lap_mu);
+    grad_phi(1, dphi_now);
+
     for (i=1; i < (MESHX-1); i++) {
       grad_phi(i+1, dphi_next);
       for (j=1; j < (MESHX-1); j++){
@@ -74,15 +78,14 @@ void main() {
         Gamma = div_phi(j);
         drv_frce = (mu_old[z] - Mu)*(K-1)*(mu_old[z])*6*p*(1-p);
         alln_chn = E*Gamma - (G/E)*18.0*(p)*(1.0-p)*(1.0-2.0*p);
-
         dp = deltat*(alln_chn + drv_frce)/(tau*E);
         phi_new[z] = p + dp;
-
         du = deltat*M*lap_mu[z] - (K-1)*mu_old[z]*6*p*(1-p)*dp;
         mu_new[z] = mu_old[z]  + du/(1+(K-1)*p*p*(3-2*p));
       }
+      fnupdate();
     }
-    fnupdate();
+
     boundary(phi_new);
     boundary(mu_new);
     //concentration();
@@ -171,82 +174,93 @@ void boundary(double *c) {
 void grad_phi(long i, double *d_phi){
 
  	long j,z;
-   switch (i){
-     case (MESHX-1):
-      for(j=1; i<MESHX-1; i++){
-       z = i*MESHX + j;
-       d_phi[2*MESHX+j] = (phi_old[z] - phi_old[z-MESHX])*inv_deltax;
-       d_phi[3*MESHX+j] = (phi_old[z+1] - phi_old[z-1] + phi_old[z+1-MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
-       break;
-      }
-     default:
-     for(j=1; i<MESHX-1; i++){
-       z = i*MESHX + j;
+
+  if (i == MESHX -1 ){
+    for(j=1; j<MESHX-1; j++){
+     z = i * MESHX + j;
+     d_phi[2*MESHX+j] = (phi_old[z] - phi_old[z-MESHX])*inv_deltax;
+     d_phi[3*MESHX+j] = (phi_old[z+1] - phi_old[z-1] + phi_old[z+1-MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
+    }
+  }
+  else {
+    for(j=1; j<MESHX-1; j++){
+       z = i * MESHX + j;
        d_phi[j] = (phi_old[z] - phi_old[z-1])*inv_deltax;
        d_phi[MESHX+j] = (phi_old[z+MESHX] - phi_old[z-MESHX] + phi_old[z-1+MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
        d_phi[2*MESHX+j] = (phi_old[z] - phi_old[z-MESHX])*inv_deltax;
        d_phi[3*MESHX+j] = (phi_old[z+1] - phi_old[z-1] + phi_old[z+1-MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
      }
-     z = z = i*MESHX + j;
+     z = i * MESHX + j;
      d_phi[j] = (phi_old[z] - phi_old[z-1])*inv_deltax;
      d_phi[MESHX+j] = (phi_old[z+MESHX] - phi_old[z-MESHX] + phi_old[z-1+MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
-     break;
-   }
+  }
 }
 
-double dqdx( double phi_x, double phi_y){
+double dqdx( double phi_x, double phi_y) {
 
-	double a, ans, phi_x2, phi_x4, phi_y2, phi_y4, inv_phi;
+	double a, phi_x2, phi_x4, phi_y2, phi_y4, inv_phi;
 	long z;
-
+  double ans = 0;
 
   phi_x4 = phi_x *phi_x *phi_x *phi_x;
   phi_y4 = phi_y *phi_y *phi_y *phi_y;
   phi_x2 = phi_x *phi_x;
   phi_y2 = phi_y *phi_y;
-	inv_phi = 1/(phi_x2+phi_y2);
 
-  a = G*(1 - Dab*(4*(phi_x4 + phi_y4) - 3)*inv_phi*inv_phi);
-  ans= 2 * a * phi_x * G * (1 - Dab*(16.0*phi_x2 + (-12.0*(phi_x4+phi_y4)+9.0)*inv_phi)*inv_phi);
-  return phi_x;
+  if ((phi_x2> 1e-15) && (phi_y2> 1e-15)){
+    inv_phi = 1/(phi_x2+phi_y2);
+    a = G*(1 - Dab*(4*(phi_x4 + phi_y4) - 3)*inv_phi*inv_phi);
+    ans= 2 * a * phi_x * G * (1 - Dab*(16.0*phi_x2 + (-12.0*(phi_x4+phi_y4)+9.0)*inv_phi)*inv_phi);
+  }
+
+  return ans;
 }
+
 double div_phi(long i){
-	double ans;
+
+  double ans;
 	double x_next, x_now;
 	double y_next, y_now;
-	x_now = dqdx(dphi_now[i], dphi_now[i+MESHX]);
+
+  x_now = dqdx(dphi_now[i], dphi_now[i+MESHX]);
   x_next = dqdx(dphi_now[i+1], dphi_now[i+1+MESHX]);
   y_now = dqdx(dphi_now[i+2*MESHX], dphi_now[i+3*MESHX]);
   y_next = dqdx(dphi_next[i+2*MESHX], dphi_next[i+3*MESHX]);
 	ans = ((x_next - x_now) + ( y_next - y_now))*inv_deltax;
-	return ans;
+
+  return ans;
 }
 void fnupdate()
 {
   long i;
-  for( i=0; i<MESHX; i++){
+
+  for( i=0; i<MESHX; i++) {
     dphi_now[i] = dphi_next[i];
     dphi_now[MESHX+i] = dphi_next[MESHX+i];
     dphi_now[2*MESHX+i] = dphi_next[2*MESHX+i];
     dphi_now[3*MESHX+i] = dphi_next[3*MESHX+i];
   }
 }
-void write2file ( long t) {
+void write2file (long t) {
   int i,j,z;
   FILE *fp;
   char filename[1000];
-  sprintf(filename,"phi_%ld.dat",t);
+  sprintf(filename,"./datafiles1/phi_%ld.dat",t);
   fp = fopen(filename,"w");
-  for ( i = 0; i < MESHX; i++)
-  {
-    for ( j=0; j < MESHX; j++)
+  if (fp) {
+    for ( i = 0; i < MESHX; i++)
     {
-
-      z= i*MESHX + j;
-      fprintf(fp,"%d %d %le\n",i,j, phi_new[z]);
-
+      for ( j=0; j < MESHX; j++)
+      {
+        z= i*MESHX + j;
+        fprintf(fp,"%d %d %le\n",i,j, phi_new[z]);
+      }
+      fprintf(fp,"\n");
     }
-    fprintf(fp,"\n");
+    fclose(fp);
   }
-  fclose(fp);
-}
+  else {
+    printf("#Error:%s could not be opened to write",filename);
+    exit(1);
+    }
+  }
