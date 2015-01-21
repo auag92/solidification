@@ -13,11 +13,11 @@
 #define M (1.0)             /*Mobility*/
 #define E (4.0)             /*Relaxation factor - dimensions of length [m]*/
 #define tau (1.0)
-#define Dab (0.0000)
+#define Dab (0.06)
 
 #define ntimesteps (100000)
 #define saveT (1000)
-#define deltaMu (0.3)
+#define deltaMu (0.4)
 #define Mu (1.0)
 
 // #define DIRICHLET
@@ -201,7 +201,7 @@ double dqdx( double phi_x, double phi_y) {
 	double a, phi_x2, phi_x4, phi_y2, phi_y4, inv_phi;
 	long z;
   double ans = 0;
-
+  double part1, part2, part3, part4;
   phi_x4 = phi_x *phi_x *phi_x *phi_x;
   phi_y4 = phi_y *phi_y *phi_y *phi_y;
   phi_x2 = phi_x *phi_x;
@@ -209,8 +209,11 @@ double dqdx( double phi_x, double phi_y) {
 
   if ((phi_x2> 1e-15) && (phi_y2> 1e-15)){
     inv_phi = 1/(phi_x2+phi_y2);
-    a = G*(1 - Dab*(4*(phi_x4 + phi_y4) - 3)*inv_phi*inv_phi);
-    ans= 2 * a * phi_x * G * (1 - Dab*(16.0*phi_x2 + (-12.0*(phi_x4+phi_y4)+9.0)*inv_phi)*inv_phi);
+    part1 = (1-Dab*(3-4*(phi_x4+phi_y4)*inv_phi*inv_phi));
+    part2 = 2*G*E*part1*part1*phi_x;
+    part3 = 32*G*E*Dab*(phi_x2+phi_y2)*(part1);
+    part4 = phi_x2*phi_x*inv_phi*inv_phi - phi_x*(phi_x4+phi_y4)*inv_phi*inv_phi*inv_phi;
+    ans = part2 + part3*part4;
   }
 
   return ans;

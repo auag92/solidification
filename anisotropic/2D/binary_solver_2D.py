@@ -107,8 +107,11 @@ def dqdx(phi_x, phi_y):
 
     if ((phi_x2> 1e-15) and (phi_y2> 1e-15)):
         inv_phi = 1/(phi_x2+phi_y2)
-        a = G*(1 - Dab*(4*(phi_x4 + phi_y4) - 3)*inv_phi*inv_phi)
-        ans= 2 * a * phi_x * G * (1 - Dab*(16.0*phi_x2 + (-12.0*(phi_x4+phi_y4)+9.0)*inv_phi)*inv_phi)
+        part11 = (1-Dab*(3-4*(phi_x4+phi_y4)*inv_phi*inv_phi))
+        part1 = 2*G*E*part11*part11*phi_x
+        part21 = 32*G*E*Dab*(phi_x2+phi_y2)*(part11)
+        part22 = phi_x2*phi_x*inv_phi*inv_phi - phi_x*(phi_x4+phi_y4)*inv_phi*inv_phi*inv_phi
+        ans = part1 + part21*part22
 
     return ans
 
