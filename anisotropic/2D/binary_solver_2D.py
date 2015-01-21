@@ -11,9 +11,9 @@ G = 1.0         #    /*Surface Energy*/
 M = 1.0         #    /*Mobility*/
 E = 4.0         #    /*Relaxation factor - dimensions of length [m]*/
 tau = 1.0
-Dab = 0.0000
+Dab = 0.06
 
-ntimesteps = 100
+ntimesteps = 50
 saveT = 1000
 deltaMu = 0.3
 Mu = 1.0
@@ -110,19 +110,14 @@ def grad_phi(i, d_phi):
 def dqdx(phi_x, phi_y):
     ans = 0
 
-    phi_x4 = phi_x *phi_x *phi_x *phi_x
-    phi_y4 = phi_y *phi_y *phi_y *phi_y
-    phi_x2 = phi_x *phi_x
-    phi_y2 = phi_y *phi_y
+    phi_x4 = phi_x**4
+    phi_y4 = phi_y**4
+    phi_x2 = phi_x**2
+    phi_y2 = phi_y**2
+    phi_xy2 = phi_x2 + phi_y2
 
     if ((phi_x2> 1e-15) and (phi_y2> 1e-15)):
-        inv_phi = 1/(phi_x2+phi_y2)
-        part11 = (1-Dab*(3-4*(phi_x4+phi_y4)*inv_phi*inv_phi))
-        part1 = 2*G*E*part11*part11*phi_x
-        part21 = 32*G*E*Dab*(phi_x2+phi_y2)*(part11)
-        part22 = phi_x2*phi_x*inv_phi*inv_phi - phi_x*(phi_x4+phi_y4)*inv_phi*inv_phi*inv_phi
-        ans = part1 + part21*part22
-
+        ans = 2*E*G*phi_x*(Dab*(-4*phi_x**4 - 4*phi_y**4 + 3*(phi_xy2)**2) - (phi_xy2)**2)*(Dab*(-4*phi_x**4 - 4*phi_y**4 + 3*(phi_xy2)**2) - 16*Dab*(-phi_x**4 + phi_x**2*(phi_xy2) - phi_y**4) - (phi_xy2)**2)/(phi_xy2)**4
     return ans
 
 def div_phi(i):
@@ -142,18 +137,15 @@ def fnupdate():
         dphi_now[3*MESHX+i] = dphi_next[3*MESHX+i]
 
 def write2file (t):
-    # sprintf(filename,"./datafiles1/phi_%ld.dat",t);
-    #fp = fopen(filename,"w");
-    #if (fp) {
+    f = open('/home/apaar/codes/project_solidification/anisotropic/2D/datafiles2/phi'+ str(t) + '.dat','w')
+
     for i in range(MESHX):
         for j in range(MESHX):
             z= i*MESHX + j
-  #           fprintf(fp,"%d %d %le\n",i,j, phi_new[z]);
-  #     fprintf(fp,"\n");
-  #   fclose(fp);
-  # else {
-  #   printf("#Error:%s could not be opened to write",filename);
-  #   exit(1);
+            f.write('{} {} {}\n'.format(i, j , phi_new[z]))
+        f.write('\n');
+    f.close()
+
 
 initialize()
 boundary(phi_old)

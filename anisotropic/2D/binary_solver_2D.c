@@ -99,11 +99,10 @@ void main() {
 void update() {
   long i, j, z;
   for (i=0; i < MESHX; i++) {
-    for (j=0; j < MESHX; j++){
+    for (j=0; j < MESHX; j++) {
       z= i*MESHX + j;
       phi_old[z]=phi_new[z];
       mu_old[z]=mu_new[z];
-
     }
   }
 }
@@ -201,10 +200,10 @@ double dqdx( double phi_x, double phi_y) {
 	long z;
   double ans = 0;
   double part1, part2, part3, part4;
-  phi_x4 = phi_x *phi_x *phi_x *phi_x;
-  phi_y4 = phi_y *phi_y *phi_y *phi_y;
   phi_x2 = phi_x *phi_x;
   phi_y2 = phi_y *phi_y;
+  phi_y4 = phi_y2 *phi_y2;
+  phi_x4 = phi_x2 *phi_x2;
 
   if ((phi_x2> 1e-15) && (phi_y2> 1e-15)){
     inv_phi = 1/(phi_x2+phi_y2);
