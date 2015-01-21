@@ -17,7 +17,7 @@
 
 #define ntimesteps (100000)
 #define saveT (1000)
-#define deltaMu (0.4)
+#define deltaMu (0.1)
 #define Mu (1.0)
 
 // #define DIRICHLET
@@ -175,24 +175,23 @@ void grad_phi(long i, double *d_phi){
 
  	long j,z;
 
-  if (i == MESHX -1 ){
-    for(j=1; j<MESHX-1; j++){
-     z = i * MESHX + j;
-     d_phi[2*MESHX+j] = (phi_old[z] - phi_old[z-MESHX])*inv_deltax;
-     d_phi[3*MESHX+j] = (phi_old[z+1] - phi_old[z-1] + phi_old[z+1-MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
+  for(j=1; j<MESHX-1; j++){
+    z = i * MESHX + j;
+    if (i == MESHX -1 ){
+      d_phi[2*MESHX+j] = (phi_old[z] - phi_old[z-MESHX])*inv_deltax;
+      d_phi[3*MESHX+j] = (phi_old[z+1] - phi_old[z-1] + phi_old[z+1-MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
     }
-  }
-  else {
-    for(j=1; j<MESHX-1; j++){
-       z = i * MESHX + j;
-       d_phi[j] = (phi_old[z] - phi_old[z-1])*inv_deltax;
-       d_phi[MESHX+j] = (phi_old[z+MESHX] - phi_old[z-MESHX] + phi_old[z-1+MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
-       d_phi[2*MESHX+j] = (phi_old[z] - phi_old[z-MESHX])*inv_deltax;
-       d_phi[3*MESHX+j] = (phi_old[z+1] - phi_old[z-1] + phi_old[z+1-MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
+    else {
+      d_phi[j] = (phi_old[z] - phi_old[z-1])*inv_deltax;
+      d_phi[MESHX+j] = (phi_old[z+MESHX] - phi_old[z-MESHX] + phi_old[z-1+MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
+      d_phi[2*MESHX+j] = (phi_old[z] - phi_old[z-MESHX])*inv_deltax;
+      d_phi[3*MESHX+j] = (phi_old[z+1] - phi_old[z-1] + phi_old[z+1-MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
      }
-     z = i * MESHX + j;
-     d_phi[j] = (phi_old[z] - phi_old[z-1])*inv_deltax;
-     d_phi[MESHX+j] = (phi_old[z+MESHX] - phi_old[z-MESHX] + phi_old[z-1+MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
+  }
+  if (i != MESHX-1) {
+    z = i * MESHX + j;
+    d_phi[j] = (phi_old[z] - phi_old[z-1])*inv_deltax;
+    d_phi[MESHX+j] = (phi_old[z+MESHX] - phi_old[z-MESHX] + phi_old[z-1+MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
   }
 }
 
