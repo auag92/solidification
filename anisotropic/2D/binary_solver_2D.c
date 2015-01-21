@@ -15,9 +15,9 @@
 #define tau (1.0)
 #define Dab (0.06)
 
-#define ntimesteps (100000)
+#define ntimesteps (1000000)
 #define saveT (1000)
-#define deltaMu (0.1)
+#define deltaMu (0.25)
 #define Mu (1.0)
 
 // #define DIRICHLET
@@ -246,7 +246,7 @@ void write2file (long t) {
   int i,j,z;
   FILE *fp;
   char filename[1000];
-  sprintf(filename,"./datafiles1/phi_%ld.dat",t);
+  sprintf(filename,"./datafiles2/phi_%ld.dat",t);
   fp = fopen(filename,"w");
   if (fp) {
     for ( i = 0; i < MESHX; i++)
