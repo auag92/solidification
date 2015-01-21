@@ -13,41 +13,49 @@ E = 4.0         #    /*Relaxation factor - dimensions of length [m]*/
 tau = 1.0
 Dab = 0.0000
 
-ntimesteps = 100000
+ntimesteps = 100
 saveT = 1000
 deltaMu = 0.3
 Mu = 1.0
 
-#DIRICHLET
 CONSTANT_X_0 = 0.1
 CONSTANT_X_1 = 0.5
-#NEUMANN
 
-#PERIODIC
-#SINE_PROFILE
-#ifdef SINE_PROFILE
 wavenumber = 4
 amp = 0.1
-#endif
-#STEP_PROFILE
+
+def zero_init(n):
+    return [0 for i in range(n)]
+
+phi_old = zero_init(MESHX2)
+phi_new = zero_init(MESHX2)
+mu_new = zero_init(MESHX2)
+mu_old = zero_init(MESHX2)
+lap_phi = zero_init(MESHX2)
+lap_mu = zero_init(MESHX2)
+conc = zero_init(MESHX2)
+dphi_now = zero_init(4*MESHX)
+dphi_next = zero_init(4*MESHX)
+inv_deltax2 = (1.0/deltax2)
+inv_deltax = (1.0/deltax)
 
 def update():
-    for i in range(MESHX):
-        for j in range(MESHX):
+    for i in range(1, MESHX-1):
+        for j in range(1, MESHX-1):
             z= i*MESHX + j;
             phi_old[z]=phi_new[z];
             mu_old[z]=mu_new[z];
 
 def laplacian(f, lap):
-    for i in range(MESHX):
-        for j in range(MESHX):
+    for i in range(1, MESHX-1):
+        for j in range(1, MESHX-1):
             z = i*MESHX + j
             coeff = (f[z-1] + f[z+1] + f[z+MESHX] + f[z-MESHX]  -4.0*f[z])
             lap[z] = coeff * inv_deltax2
 
 def concentration( ):
-  for i in range(MESHX):
-      for j in range(MESHX):
+  for i in range(1, MESHX-1):
+      for j in range(1, MESHX-1):
           z= i*MESHX + j
           p = phi_new[z]
           u = mu_new[z]
@@ -55,8 +63,8 @@ def concentration( ):
           conc[z] = u*(1-h) + (h)*K*u
 
 def initialize():
-    for i in range(MESHX):
-        for j in range(MESHX):
+    for i in range(1, MESHX-1):
+        for j in range(1, MESHX-1):
             r = i*i + j*j
             z = i*MESHX + j
             if (r < 2500.0):
@@ -68,7 +76,7 @@ def initialize():
 
 
 def boundary(c):
-    for i in range(MESHX):
+    for i in range(MESHX-1):
         y= i*MESHX
         z= i*MESHX + MESHX-1
 
@@ -82,20 +90,22 @@ def boundary(c):
 
 def grad_phi(i, d_phi):
     if (i == MESHX -1 ):
-        for j in range(MESHX):
+        for j in range(1, MESHX-1):
             z = i * MESHX + j
             d_phi[2*MESHX+j] = (phi_old[z] - phi_old[z-MESHX])*inv_deltax
             d_phi[3*MESHX+j] = (phi_old[z+1] - phi_old[z-1] + phi_old[z+1-MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax
     else:
-        for j in range(MESHX):
+        for j in range(1, MESHX-1):
             z = i * MESHX + j
             d_phi[j] = (phi_old[z] - phi_old[z-1])*inv_deltax
             d_phi[MESHX+j] = (phi_old[z+MESHX] - phi_old[z-MESHX] + phi_old[z-1+MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax
             d_phi[2*MESHX+j] = (phi_old[z] - phi_old[z-MESHX])*inv_deltax
             d_phi[3*MESHX+j] = (phi_old[z+1] - phi_old[z-1] + phi_old[z+1-MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax
-    z = i * MESHX + j
-    d_phi[j] = (phi_old[z] - phi_old[z-1])*inv_deltax
-    d_phi[MESHX+j] = (phi_old[z+MESHX] - phi_old[z-MESHX] + phi_old[z-1+MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax
+        z = i * MESHX + j
+        d_phi[j] = (phi_old[z] - phi_old[z-1])*inv_deltax
+        d_phi[MESHX+j] = (phi_old[z+MESHX] - phi_old[z-MESHX] + phi_old[z-1+MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax
+
+
 
 def dqdx(phi_x, phi_y):
     ans = 0
@@ -131,11 +141,20 @@ def fnupdate():
         dphi_now[2*MESHX+i] = dphi_next[2*MESHX+i]
         dphi_now[3*MESHX+i] = dphi_next[3*MESHX+i]
 
+def write2file (t):
+    # sprintf(filename,"./datafiles1/phi_%ld.dat",t);
+    #fp = fopen(filename,"w");
+    #if (fp) {
+    for i in range(MESHX):
+        for j in range(MESHX):
+            z= i*MESHX + j
+  #           fprintf(fp,"%d %d %le\n",i,j, phi_new[z]);
+  #     fprintf(fp,"\n");
+  #   fclose(fp);
+  # else {
+  #   printf("#Error:%s could not be opened to write",filename);
+  #   exit(1);
 
-long i, j, z, t
-double p,dp,du
-double drv_frce, alln_chn
-double Gamma
 initialize()
 boundary(phi_old)
 boundary(mu_old)
@@ -146,9 +165,9 @@ for t in range(ntimesteps):
     laplacian(mu_old, lap_mu)
     grad_phi(1, dphi_now)
 
-    for i in range(MESHX):
+    for i in range(1, MESHX-1):
         grad_phi(i+1, dphi_next)
-        for j in range(MESHX):
+        for j in range(1, MESHX-1):
             z= i*MESHX + j
             p = phi_old[z]
             #//Gamma = 2*G*lap_phi[z]
@@ -168,4 +187,4 @@ for t in range(ntimesteps):
     if ((t % saveT) is 0):
       write2file(t)
 
-printf("Yay! We are done.\n")
+print("Yay! We are done.\n")
