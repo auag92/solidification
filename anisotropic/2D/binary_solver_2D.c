@@ -2,7 +2,7 @@
 #include "math.h"
 #include "stdlib.h"
 
-#define MESHX 200
+#define MESHX 600
 #define MESHX2 (MESHX*MESHX)
 #define deltat (0.02)
 #define deltax (1)
@@ -11,13 +11,13 @@
 #define K (0.5)             /*Partition Coefficient*/
 #define G (1.0)             /*Surface Energy*/
 #define M (1.0)             /*Mobility*/
-#define E (4.0)             /*Relaxation factor - dimensions of length [m]*/
+#define E (6.0)             /*Relaxation factor - dimensions of length [m]*/
 #define tau (1.0)
 #define Dab (0.06)
 
 #define ntimesteps (1000000)
-#define saveT (1000)
-#define deltaMu (0.25)
+#define saveT (5000)
+#define deltaMu (0.4)
 #define Mu (1.0)
 
 // #define DIRICHLET
@@ -142,7 +142,7 @@ void initialize() {
     {
       r= i*i + j*j;
       z= i*MESHX + j;
-      if(r < 2500.0){
+      if(r < 10000.0){
         phi_old[z] = 1.0;
       }
       else{
