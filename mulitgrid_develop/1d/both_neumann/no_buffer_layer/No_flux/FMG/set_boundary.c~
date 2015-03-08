@@ -1,0 +1,14 @@
+void boundary(double *y)
+{
+	
+	int i;
+	for(i=0;i<no_of_levels;i++) 
+	{
+		printf("At the %dth level\n",i+1);
+		printf("left=%d\tright=%d\n",left[i],right[i]);
+	
+		y[left[i]]=LEFT;
+		y[right[i]]=RIGHT;
+	
+	}
+}

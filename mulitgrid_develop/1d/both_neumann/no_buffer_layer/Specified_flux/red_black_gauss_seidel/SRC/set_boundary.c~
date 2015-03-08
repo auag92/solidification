@@ -1,0 +1,7 @@
+void boundary(double *y)
+{
+	//the specified fluxes appear at the rhs nodes corresponding to the boundary points
+	 	
+
+
+}

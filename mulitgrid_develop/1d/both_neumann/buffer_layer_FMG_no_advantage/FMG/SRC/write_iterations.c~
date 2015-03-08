@@ -1,0 +1,17 @@
+void write_iter(int count,int iter,int mesh_tracker)	
+{
+	//==============================================================================//
+	char fname[300];
+	FILE *fp;
+	//==============================================================================//
+
+
+	sprintf(fname,"../DATA/iter.dat");
+	if((fp=fopen(fname,"a"))==NULL)
+	{
+		printf("iteration info can't be written\n");
+		exit(1);
+	}
+
+	
+

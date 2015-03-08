@@ -1,0 +1,20 @@
+void rhs(double *f)
+{	
+	int i;
+	
+	//I am going to initialise the rhs for the interior points on the finest mesh 
+
+	printf("rhs initialised for %ldth to %ldth\n",start[0]+1,end[0]-1);
+	
+	for(i=start[0];i<=end[0];i++)// I am initialising the 'f' array for the finest grid 
+	//initialising everywhere including the boundaries
+	{
+		#ifdef ZERO_RHS
+		f[i]=0.0;
+		#endif
+
+		#ifdef X_RHS
+		f[i]=SYS_LEFT_END+i*dx;
+		#endif
+	}
+}						

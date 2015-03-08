@@ -1,0 +1,12 @@
+void boundary(double *f)
+{
+	//the specified fluxes appear at the rhs nodes corresponding to the boundary points
+	
+	//at the left end (the Dirichlet BC)	
+	y[0]=LEFT;
+
+	//at the right end (the Neumann BC) 
+	f[nodes_x-1]-=(RIGHT/dx);		 	
+
+
+}

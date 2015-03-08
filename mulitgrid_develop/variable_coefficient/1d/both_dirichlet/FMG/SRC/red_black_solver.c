@@ -1,0 +1,37 @@
+void rb_solve(double *y,double *f,double *a,int begin,double *error,int mesh_tracker)
+{
+	int i,i_mesh_inter,i_nodes;
+	double y_star,new_val;
+
+	double a_for_back;
+	
+	//'start' corresponds to the left boundary 
+	//'end' corresponds to the right boundary
+	//'begin' will have values either '1' or '2'
+		
+
+	for(i=begin;i<=nodes_x[mesh_tracker]-2;i+=2)//leaving out the boundary points for the Dirichlet boundary condition 
+	{
+		i_nodes=i+start[mesh_tracker];
+		i_mesh_inter=i+start_mesh_inter[mesh_tracker];
+
+		//creating 'a_for_back'
+		a_for_back=a[i_mesh_inter-1]+a[i_mesh_inter];
+
+		y_star=(y[i_nodes-1]*a[i_mesh_inter-1]+y[i_nodes+1]*a[i_mesh_inter]-dx[mesh_tracker]*dx[mesh_tracker]*f[i_nodes])/a_for_back;
+
+		//if(mesh_tracker==1)
+			//printf("a_l=%lf a_r=%lf a_f_b=%lf\n",a[i_mesh_inter-1],a[i_mesh_inter],a_for_back);
+
+		new_val=y[i_nodes]+OMEGA*(y_star-y[i_nodes]);	
+
+		*error+=(new_val-y[i_nodes])*(new_val-y[i_nodes]);
+
+		y[i_nodes]=new_val;
+	}
+
+	//if(mesh_tracker==1)
+		//getchar();
+
+	
+}				
