@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MESHX (100)
+#define MESHX (128)
 #define MESHX2 (MESHX*MESHX)
 #define deltax (1)
 #define inv_deltax (1/deltax)
@@ -21,7 +21,7 @@ double dw_dt, dxi_dx, dxi_dy, dw_dx, dw_dy, d2w_dx2, d2w_dy2;
 void initialize();
 void boundary();
 void update();
-
+void RHS_fn();
 main(){
 
   int i,j,z,t=0;
@@ -39,4 +39,18 @@ main(){
   boundary(xi_now, w_now)
   update();
 
+}
+
+
+void RHSS_fn(){
+  dlapU_dx = inv_deltax*(lap_u[z+i] - lap_u[z]);
+  dlapV_dy = inv_deltax*(lap_v[z+meshx] - lap_v[z]);
+  du_dx = inv_deltax*(u[z+i] - u[z]);
+  ud2u_dx2 = ????????
+  du_dy = inv_deltax*(u[z+meshx] - u[z]);
+  dv_dx = inv_deltax*(v[z+i] - v[z]);
+  vd2v_dy2 = ????????
+  dv_dy = inv_deltax*(v[z+meshx] - v[z]);
+  advctn = du_dx*du_dx + dv_dy*dv_dy + 2*dv_dx*du_dy + vd2v_dy2 + ud2u_dx2;
+  fn[z] = Mu*(dlapU_dx + dlapV_dy) - advctn;
 }
