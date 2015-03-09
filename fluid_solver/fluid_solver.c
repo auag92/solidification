@@ -43,14 +43,28 @@ main(){
 
 
 void RHSS_fn(){
-  dlapU_dx = inv_deltax*(lap_u[z+i] - lap_u[z]);
-  dlapV_dy = inv_deltax*(lap_v[z+meshx] - lap_v[z]);
-  du_dx = inv_deltax*(u[z+i] - u[z]);
-  ud2u_dx2 = ????????
-  du_dy = inv_deltax*(u[z+meshx] - u[z]);
-  dv_dx = inv_deltax*(v[z+i] - v[z]);
-  vd2v_dy2 = ????????
-  dv_dy = inv_deltax*(v[z+meshx] - v[z]);
-  advctn = du_dx*du_dx + dv_dy*dv_dy + 2*dv_dx*du_dy + vd2v_dy2 + ud2u_dx2;
-  fn[z] = Mu*(dlapU_dx + dlapV_dy) - advctn;
+  int i,j,x,z;
+
+  for (i=1; i<MESHX-1; i++){
+    for (j=1; j<MESHX-1; j++){
+      dlapU_dx =0.5*inv_deltax*(lap_u[z+i]-lap_u[z]+lap_u[z+MESHX+i]-lap_u[z+MESHX]);
+      dlapV_dy =0.5*inv_deltax*(lap_v[z+meshx]-lap_v[z]+lap_v[z+i+meshx]-lap_v[z+i]);
+
+      du_dx = 0.5*inv_deltax*(u[z+i]-u[z]+u[z+MESHX+i]-u[z+MESHX]);
+      du_dy = 0.5*inv_deltax*(u[z+meshx]-u[z]+u[z+i+meshx]-u[z+i]);
+      u_avg = 0.25*(u[z]+u[z+i]+u[z+MESHX]+u[z+MESHX+i]);
+      d2u_dx2 = 0.25*inv_deltax2*(u[z-1]-u[z]-u[z+1]+u[z+2]+u[z-1+MESHX]-u[z+MESHX]-u[z+1+MESHX]+u[z+2+MESHX]);
+      d2u_dxdy = inv_deltax2*(u[z+MESHX+i]-u[z+i]-u[z+MESHX]+u[z]);
+
+      dv_dx = 0.5*inv_deltax*(v[z+i]-v[z]+v[z+MESHX+i]-v[z+MESHX]);
+      dv_dy = inv_deltax*(v[z+meshx]-v[z]+v[z+i+meshx]-v[z+i]);
+      v_avg = 0.25*(v[z]+v[z+i]+v[z+MESHX]+v[z+MESHX+i]);
+      d2v_dy2 = 0.25*inv_deltax2*(v[z-MESHX]-v[z]-v[z+MESHX]+v[z+2*MESHX]+v[z-MESHX+i]-v[z+i]-v[z+MESHX+i]+v[z+2*MESHX+i]);
+      d2v_dydx = inv_deltax2*(v[z+MESHX+i]-v[z+MESHX]-v[z+i]+v[z]);
+
+      advctn = du_dx*du_dx+dv_dy*dv_dy+2*(dv_dx*du_dy)+v_avg*(d2v_dy2+d2u_dxdy)+u_avg*(d2u_dx2+d2v_dydx);
+      fn[z] = Mu*(dlapU_dx + dlapV_dy) - advctn;
+    }
+  }
+
 }
