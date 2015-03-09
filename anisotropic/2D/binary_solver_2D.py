@@ -129,6 +129,14 @@ def fnupdate():
         dphi_now[3*MESHX+i] = dphi_next[3*MESHX+i]
 
 
+def zero_init(n):
+    return [0 for i in range(n)]
+
+
+phi_old = zero_int(MESHX)
+
+
+
 long i, j, z, t
 double p,dp,du
 double drv_frce, alln_chn
