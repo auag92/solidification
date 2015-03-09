@@ -1,0 +1,13 @@
+void boundary(double *f)
+{
+	//the specified fluxes alter the rhs
+	//the specified fluxes appear at the rhs nodes corresponding to the boundary points in the finest grid only
+	
+	//at the left end	
+	f[start[0]]+=(LEFT/dx);
+
+	//at the right end
+	f[end[0]]-=(RIGHT/dx);		
+	
+	
+}

@@ -2,7 +2,7 @@
 #include "math.h"
 #include "stdlib.h"
 
-#define MESHX 200
+#define MESHX 600
 #define MESHX2 (MESHX*MESHX)
 #define deltat (0.02)
 #define deltax (1)
@@ -11,13 +11,13 @@
 #define K (0.5)             /*Partition Coefficient*/
 #define G (1.0)             /*Surface Energy*/
 #define M (1.0)             /*Mobility*/
-#define E (4.0)             /*Relaxation factor - dimensions of length [m]*/
+#define E (6.0)             /*Relaxation factor - dimensions of length [m]*/
 #define tau (1.0)
-#define Dab (0.0000)
+#define Dab (0.06)
 
-#define ntimesteps (100000)
-#define saveT (1000)
-#define deltaMu (0.3)
+#define ntimesteps (1000000)
+#define saveT (5000)
+#define deltaMu (0.4)
 #define Mu (1.0)
 
 // #define DIRICHLET
@@ -99,11 +99,10 @@ void main() {
 void update() {
   long i, j, z;
   for (i=0; i < MESHX; i++) {
-    for (j=0; j < MESHX; j++){
+    for (j=0; j < MESHX; j++) {
       z= i*MESHX + j;
       phi_old[z]=phi_new[z];
       mu_old[z]=mu_new[z];
-
     }
   }
 }
@@ -143,7 +142,7 @@ void initialize() {
     {
       r= i*i + j*j;
       z= i*MESHX + j;
-      if(r < 2500.0){
+      if(r < 10000.0){
         phi_old[z] = 1.0;
       }
       else{
@@ -175,24 +174,23 @@ void grad_phi(long i, double *d_phi){
 
  	long j,z;
 
-  if (i == MESHX -1 ){
-    for(j=1; j<MESHX-1; j++){
-     z = i * MESHX + j;
-     d_phi[2*MESHX+j] = (phi_old[z] - phi_old[z-MESHX])*inv_deltax;
-     d_phi[3*MESHX+j] = (phi_old[z+1] - phi_old[z-1] + phi_old[z+1-MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
+  for(j=1; j<MESHX-1; j++){
+    z = i * MESHX + j;
+    if (i == MESHX -1 ){
+      d_phi[2*MESHX+j] = (phi_old[z] - phi_old[z-MESHX])*inv_deltax;
+      d_phi[3*MESHX+j] = (phi_old[z+1] - phi_old[z-1] + phi_old[z+1-MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
     }
-  }
-  else {
-    for(j=1; j<MESHX-1; j++){
-       z = i * MESHX + j;
-       d_phi[j] = (phi_old[z] - phi_old[z-1])*inv_deltax;
-       d_phi[MESHX+j] = (phi_old[z+MESHX] - phi_old[z-MESHX] + phi_old[z-1+MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
-       d_phi[2*MESHX+j] = (phi_old[z] - phi_old[z-MESHX])*inv_deltax;
-       d_phi[3*MESHX+j] = (phi_old[z+1] - phi_old[z-1] + phi_old[z+1-MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
+    else {
+      d_phi[j] = (phi_old[z] - phi_old[z-1])*inv_deltax;
+      d_phi[MESHX+j] = (phi_old[z+MESHX] - phi_old[z-MESHX] + phi_old[z-1+MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
+      d_phi[2*MESHX+j] = (phi_old[z] - phi_old[z-MESHX])*inv_deltax;
+      d_phi[3*MESHX+j] = (phi_old[z+1] - phi_old[z-1] + phi_old[z+1-MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
      }
-     z = i * MESHX + j;
-     d_phi[j] = (phi_old[z] - phi_old[z-1])*inv_deltax;
-     d_phi[MESHX+j] = (phi_old[z+MESHX] - phi_old[z-MESHX] + phi_old[z-1+MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
+  }
+  if (i != MESHX-1) {
+    z = i * MESHX + j;
+    d_phi[j] = (phi_old[z] - phi_old[z-1])*inv_deltax;
+    d_phi[MESHX+j] = (phi_old[z+MESHX] - phi_old[z-MESHX] + phi_old[z-1+MESHX] - phi_old[z-1-MESHX])*0.25*inv_deltax;
   }
 }
 
@@ -201,16 +199,19 @@ double dqdx( double phi_x, double phi_y) {
 	double a, phi_x2, phi_x4, phi_y2, phi_y4, inv_phi;
 	long z;
   double ans = 0;
-
-  phi_x4 = phi_x *phi_x *phi_x *phi_x;
-  phi_y4 = phi_y *phi_y *phi_y *phi_y;
+  double part1, part2, part3, part4;
   phi_x2 = phi_x *phi_x;
   phi_y2 = phi_y *phi_y;
+  phi_y4 = phi_y2 *phi_y2;
+  phi_x4 = phi_x2 *phi_x2;
 
   if ((phi_x2> 1e-15) && (phi_y2> 1e-15)){
     inv_phi = 1/(phi_x2+phi_y2);
-    a = G*(1 - Dab*(4*(phi_x4 + phi_y4) - 3)*inv_phi*inv_phi);
-    ans= 2 * a * phi_x * G * (1 - Dab*(16.0*phi_x2 + (-12.0*(phi_x4+phi_y4)+9.0)*inv_phi)*inv_phi);
+    part1 = (1-Dab*(3-4*(phi_x4+phi_y4)*inv_phi*inv_phi));
+    part2 = 2*G*E*part1*part1*phi_x;
+    part3 = 32*G*E*Dab*(phi_x2+phi_y2)*(part1);
+    part4 = phi_x2*phi_x*inv_phi*inv_phi - phi_x*(phi_x4+phi_y4)*inv_phi*inv_phi*inv_phi;
+    ans = part2 + part3*part4;
   }
 
   return ans;
@@ -245,7 +246,7 @@ void write2file (long t) {
   int i,j,z;
   FILE *fp;
   char filename[1000];
-  sprintf(filename,"./datafiles1/phi_%ld.dat",t);
+  sprintf(filename,"./datafiles2/phi_%ld.dat",t);
   fp = fopen(filename,"w");
   if (fp) {
     for ( i = 0; i < MESHX; i++)

@@ -1,0 +1,9 @@
+void boundary(double *y,double *f)
+{
+	//the specified fluxes appear at the rhs nodes corresponding to the boundary points
+	
+	//at the left end (the Dirichlet BC)	
+	y[0]=LEFT;	 	
+
+
+}
