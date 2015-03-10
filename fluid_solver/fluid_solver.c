@@ -28,9 +28,9 @@ main(){
   for(t=1; t<ntimesteps; t++){
     for(i=1; i<MESHX; i++){
       for(j=1; j<MESHX; j++){
-
-        du_dt = -1*dp_dx + mu*lap_u[z] - u_old[z]*du_dx - v_old[z]*du*dy;
-        dv_dt = -1*dp_dy + mu*lap_v[z] - u_old[z]*dv_dx - v_old[z]*dv*dy;
+	
+        du_dt = mu*lap_u[z] - dp_dx - u_old[z]*du_dx - v_old[z]*du*dy;
+        dv_dt = mu*lap_v[z] - dp_dy - u_old[z]*dv_dx - v_old[z]*dv*dy;
         u_new = u_old + deltat * u_old[z];
         v_new = v_old + deltat * v_old[z];
       }
@@ -45,8 +45,8 @@ main(){
 void RHSS_fn(){
   int i,j,x,z;
 
-  for (i=1; i<MESHX-1; i++){
-    for (j=1; j<MESHX-1; j++){
+  for (i=1; i<MESHX-2; i++){
+    for (j=1; j<MESHX-2; j++){
       dlapU_dx =0.5*inv_deltax*(lap_u[z+i]-lap_u[z]+lap_u[z+MESHX+i]-lap_u[z+MESHX]);
       dlapV_dy =0.5*inv_deltax*(lap_v[z+meshx]-lap_v[z]+lap_v[z+i+meshx]-lap_v[z+i]);
 

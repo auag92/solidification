@@ -15,7 +15,7 @@
 #define tau (1.0)
 #define Dab (0.06)
 
-#define ntimesteps (1000000)
+#define ntimesteps (100000)
 #define saveT (5000)
 #define deltaMu (0.4)
 #define Mu (1.0)
