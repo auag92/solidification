@@ -1,0 +1,154 @@
+//a V-cycle of the multigrid
+//weighted red-black gauss-seidel solver for y''=f(x) over the domain 0<x<1 with dirichlet bondary condition at x=0 and x=1
+
+//some system parameters
+#define sys_size_x 1.0
+#define finest_dx 0.01
+#define no_of_levels 3
+#define num_iter 150
+#define omega 1.0
+#define SEED 654321
+#define noise_amplitude 1.0
+//#define toler 1e-6
+#define output_interval 5000 
+
+//the choice for the right hand side
+#define X_RHS
+
+//the choice for the boundary conditons
+#define LEFT 0.0
+#define RIGHT 0.0
+
+//the choice for the inital guesses
+#define ZERO	
+
+//some header files we are going to use 
+#include<stdio.h>
+#include<stdlib.h>
+#include<math.h>
+
+//some variables needed by the system
+int nodes_x[no_of_levels];//the no. of nodes in the system
+double dx[no_of_levels];//the different grid spacings
+long nodes_x_sum; //the total no. of nodes in the system 
+int left[no_of_levels],right[no_of_levels];
+//'0' corresponds to the finest level and so on 
+
+
+//some source function files
+#include"ran2.c"
+#include"initialise.c"
+#include"set_boundary.c"
+#include"set_rhs.c"
+#include"red_black_solver.c"
+#include"compute_residual.c"
+#include"relaxation.c"
+#include"compute_initial_guess.c"
+#include"V_cycle.c"
+#include"write_profile.c"
+
+main()
+{
+	
+	//==============================================================================//
+	
+	int i;
+
+	//==============================================================================//
+
+	//==============================================================================//
+	//creating the no. of nodes information for different levels
+	
+	//fixing the values for the smallest dx
+	dx[0]=finest_dx;
+	nodes_x[0]=(int)(sys_size_x/dx[0])+1;
+	left[0]=0;
+	right[0]=nodes_x[0]-1;	
+	
+
+	printf("The finest grid has dx=%lf and nodes=%d\n",dx[0],nodes_x[0]);
+
+	printf("For the finest grid, the left boundary = %d and the right boundary = %d\n",left[0],right[0]);
+
+				
+	//fixing the values for the higher dx's
+	for(i=1;i<no_of_levels;i++)
+	{
+		dx[i]=2*i*dx[0];	
+		nodes_x[i]=(int)(sys_size_x/dx[i])+1;
+
+		printf("The %dth grid has dx=%lf and nodes=%d\n",i,dx[i],nodes_x[i]);	
+
+		left[i]=left[i-1]+nodes_x[i-1];
+		right[i]=right[i-1]+nodes_x[i];
+
+		printf("For %dth grid, the left boundary = %d and the right boundary = %d\n",i,left[i],right[i]);
+
+	}
+	
+	
+	//===============================================================================//		
+
+	//============================================================================//	
+	double *y; //the dependent variable arrays
+	double *f; //the RHS array
+	
+	
+
+	//figuring out the array lengths required
+	nodes_x_sum=0;
+	
+	for(i=0;i<no_of_levels;i++) 
+	{	
+		nodes_x_sum+=nodes_x[i];
+	}	
+	  
+
+	printf("arrays employed during calculation has a length=%ld\n",nodes_x_sum);  
+
+
+	//allocating memory to the arrays
+	
+	if((y=(double *)malloc(nodes_x_sum*sizeof(double)))==NULL)
+	{
+		printf("Space creation failed for the y array\n");
+		exit(1);
+	}
+		 	
+	if((f=(double *)malloc(nodes_x_sum*sizeof(double)))==NULL)
+	{
+		printf("Space creation failed for the f array\n");
+		exit(1);
+	}
+	//============================================================================//	
+
+	//============================================================================//
+	//initial guess (see "initialise.c") for the unknown points
+	init(y);
+	//============================================================================//
+
+	//============================================================================//
+	//setting up the boundary conditions (see "set_boundary.c")
+	boundary(y);
+	//============================================================================//	
+
+	//============================================================================//
+	//setting up the RHS (see "set_rhs.c")
+	rhs(f);	
+	//============================================================================//
+
+	//============================================================================//
+	//starting the V-cycle iterations (see "V_cycle.c")
+	solve_V_cycle(y,f);
+
+	//============================================================================//
+		
+	//again_writing the final files
+	//see "write_profile.c"
+	write(y);
+
+	free(y);
+	free(f);
+}		 
+	
+

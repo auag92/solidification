@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define pmesh 128
+#define pmesh 16
 #define MESHX (pmesh + 3)
 #define MESHX2 (MESHX*MESHX)
 #define deltax (1)
@@ -25,6 +25,7 @@ void boundary();
 void update();
 void laplacian(double *f, double *lap);
 void RHS_fn(double *u, double *v, double *lap_u, double *lap_v, int M);
+void Pupdate();
 
 main(){
 
@@ -35,14 +36,18 @@ main(){
   for(t=0; t<ntimesteps; t++){
     laplacian(*u_old,*lap_u, MESHX2);
     laplacian(*v_old,*lap_v, MESHX2);
-    RHS_fn(*u_old,*v_old,*lap_u,*lap_v,*p_old,MESHX2);
+    RHS_fn(*u_old,*v_old,*lap_u,*lap_v,MESHX2);
     multigrid(*Pstr, *rhs_fn, pmesh);
+    Pupdate();
     for(i=1; i<MESHX-1; i++){
       for(j=1; j<MESHX-1; j++){
-	du_dx = 0.5*inv_deltax*(u_old[z+i] - u_old[z-i]);
+	
+	z = i*MESHX +j;
+	x = (i-1)*(MESHX-1)+ (j-1); 
+	du_dx = 0.5*inv_deltax*(u_old[z+1] - u_old[z-1]);
 	dv_dx = 0.5*inv_deltax*(v_old[z+MESHX] - v_old[z-MESHX]);
-	dp_dx = inv_deltax*(P[z+i]-P[z-i]);
-	dp_dy = inv_deltax*(P[z+MESHX]-P[z-MESHX]); 
+	dp_dx = 0.5*inv_deltax*(P[x+1]+P[X+MESHX]-P[x+MESHX-1]-P[x]);
+	dp_dy = 0.5*inv_deltax*(P[x+MESHX]+P[X+MESHX-1]-P[x+1]-P[x]);
         du_dt = mu*lap_u[z] - dp_dx - (u_old[z]*du_dx + v_old[z]*du_dy);
         dv_dt = mu*lap_v[z] - dp_dy - (u_old[z]*dv_dx + v_old[z]*dv_dy);
         u_now[z] = u_old[z] + deltat * u_old[z];
@@ -50,7 +55,7 @@ main(){
       }
     }
   }
-  boundary(v_now, u_now);
+  boundary();
   update(v_old, v_now);
   update(u_old, u_now);
 }
@@ -64,6 +69,18 @@ void update(double *old, double *new) {
     }
   }
 }
+
+void Pupdate(){
+  int i,j,z;
+ 
+  for (i=1; i < MESHX-2; i++) {
+    for (j=1; j < MESHX-2; j++){
+      z= i*MESHX + j;
+      
+      old[z]=new[z];      
+    }
+  }
+}  
 void laplacian(double *f, double *lap) {
   long i,j,z;
     
@@ -91,17 +108,20 @@ void initialize() {
     }
   }
 }
-void boundary(double *c) {
+void boundary() {
 
-  int i ,y ,z;
-
-  
-  
-  for (i=0; i<MESHX -1; i++)
+  int i ,y ,z; 
+  for (i=0; i<MESHX; i++)
   {
-// to be added
-  }
-  
+    u_now[i] = Uw;
+    v_now[i] = 0.0
+    u_now[i*MESHX] = 0.0;
+    v_now[i*MESHX] = 0.0;
+    u_now[i*MESHX+MESHX-1] = 0.0;
+    v_now[i*MESHX+MESHX-1] = 0.0;
+    u_now[MESHX2-MESHX+i] = 0.0;
+    v_now[MESHX2-MESHX+i] = 0.0;
+  }  
 }
 
 void RHS_fn(double *u, double *v, double *lap_u, double *lap_v, int M){
@@ -114,8 +134,8 @@ void RHS_fn(double *u, double *v, double *lap_u, double *lap_v, int M){
       
       z = i*MESHX + j;
       x = z - MESHX -1;
-      dlapU_dx =0.5*inv_deltax*(lap_u[z+i]-lap_u[z]+lap_u[z+MESHX+i]-lap_u[z+MESHX]);
-      dlapV_dy =0.5*inv_deltax*(lap_v[z+meshx]-lap_v[z]+lap_v[z+i+meshx]-lap_v[z+i]);
+      dlapU_dx =0.5*inv_deltax*(lap_u[z+1]-lap_u[z]+lap_u[z+MESHX+1]-lap_u[z+MESHX]);
+      dlapV_dy =0.5*inv_deltax*(lap_v[z+meshx]-lap_v[z]+lap_v[z+1+meshx]-lap_v[z+1]);
 
       du_dx = 0.5*inv_deltax*(u[z+i]-u[z]+u[z+MESHX+i]-u[z+MESHX]);
       du_dy = 0.5*inv_deltax*(u[z+meshx]-u[z]+u[z+i+meshx]-u[z+i]);

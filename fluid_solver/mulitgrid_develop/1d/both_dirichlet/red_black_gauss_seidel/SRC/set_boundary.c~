@@ -1,0 +1,5 @@
+void boundary(double *y_arr)
+{
+	y_arr[0]=LEFT;
+	y_arr[nodes_x-1]=RIGHT;
+}

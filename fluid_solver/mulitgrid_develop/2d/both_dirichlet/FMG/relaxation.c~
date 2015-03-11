@@ -1,0 +1,30 @@
+void relax(double *y,double *f,int mesh_tracker)
+{
+	double error=0.0;
+
+	int start;
+
+	int iter=0;
+
+	printf("At level %d\n",mesh_tracker);
+	
+	//============================================================================//
+	//solving the equation for the even update only(see "red_black_solver.c")
+	start=2;
+	rb_solve(y,f,begin,&error,mesh_tracker);
+	//===========================================================================//	
+
+		
+	//============================================================================//
+	//solving the equation for the odd update only(see "red_black_solver.c")
+	start=1;
+	rb_solve(y,f,begin,&error,mesh_tracker);
+	//===========================================================================//	
+	
+	//===========================================================================//
+	error=sqrt(error*dx[mesh_tracker]);
+	//===========================================================================//
+	
+	return error;
+	
+}

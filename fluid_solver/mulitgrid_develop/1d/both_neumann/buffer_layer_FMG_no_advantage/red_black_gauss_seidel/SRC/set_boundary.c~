@@ -1,0 +1,6 @@
+void boundary(double *y)
+{
+	//I am going to impose a no flux boundary condition
+	y[0]=LEFT;
+	y[nodes_x-1]=RIGHT;
+}

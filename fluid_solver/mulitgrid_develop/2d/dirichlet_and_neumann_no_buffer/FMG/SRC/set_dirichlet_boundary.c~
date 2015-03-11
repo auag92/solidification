@@ -1,0 +1,33 @@
+void dirich_boundary(double *y)
+{
+	int i,j;
+
+	long array_index;
+
+	//I am going to set my boundaries at the finest grid
+
+	//setting the dirichlet boundary condition
+	//currently the dirichlet boundary conditions are at 'right' and 'up'
+	
+	//setting the one at 'right' 
+	
+	i=nodes[0].x-1;
+
+	for(j=0;j<=nodes[0].y-1;j++)//it supersedes the flux BC at one corner dirichlet BC at another
+	{
+		array_index=i+nodes[0].x*j;
+		
+		y[array_index]=RIGHT;
+	}
+
+	//setting the one at "up"
+	j=nodes[0].y-1;							
+	
+	for(i=0;i<=nodes[0].x-2;i++)//this supersedes the flux bc at the left corner and is secondary to the dirichelt bc at he right corner
+	{
+		array_index=i+nodes[0].x*j;
+		
+		y[array_index]=UP;
+	}   
+}		
+  

@@ -1,0 +1,8 @@
+void flux_boundary(double *f)
+{
+	//scaling the end locations corresponding to the Neumann conidtion
+	f[nodes_x-1]/=2.0; 	
+
+	//at the right end (the Neumann BC) 
+	f[nodes_x-1]-=(RIGHT/dx);	
+}
