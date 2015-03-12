@@ -6,7 +6,7 @@ void write_iter(int count,int iter,int mesh_tracker)
 	//==============================================================================//
 
 
-	sprintf(fname,"../DATA/iter.dat");
+	sprintf(fname,"./DATA/iter.dat");
 	if((fp=fopen(fname,"a"))==NULL)
 	{
 		printf("iteration info can't be written\n");
